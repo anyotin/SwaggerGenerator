@@ -7,13 +7,14 @@ namespace SwaggerGenerator;
 
 public class ObjectExpressionParser
 {
-    public const string TargetIdentifier = "Body";
-
     /// <summary>
-    ///     実行
+    ///     
     /// </summary>
-    /// <exception cref="NullReferenceException"></exception>
-    public string? Execute(string parseClassFilePath)
+    /// <param name="parseClassFilePath"></param>
+    /// <param name="targetIdentifier"></param>
+    /// <param name="isOuter"></param>
+    /// <returns></returns>
+    public string? Execute(string parseClassFilePath, string targetIdentifier, bool isOuter = false)
     {
         var targetCode = File.ReadAllText(parseClassFilePath);
         
@@ -28,19 +29,27 @@ public class ObjectExpressionParser
         var assignmentExpressionSyntaxes = rootNode
             .DescendantNodes()
             .OfType<AssignmentExpressionSyntax>();
-        
-        // 識別子 (identifier)がBodyの箇所を取得
-        // int myValue = 10;で言うmyValueを指す。
-        var objectCreation = assignmentExpressionSyntaxes
-            .FirstOrDefault(a => a.Left is IdentifierNameSyntax id &&
-                                 id.Identifier.Text == TargetIdentifier);
 
-        // 対応する箇所がなければエラー
-        if (objectCreation is null) return null;
-
-        // オブジェクト生成式の構文ノードの型へ変換。
-        // Bodyオブジェクトのイニシャライザ式を配列のように扱うようにするため。
-        var bodyCreation =  (ObjectCreationExpressionSyntax)objectCreation.Right;
+        ObjectCreationExpressionSyntax? bodyCreation;
+        if (isOuter == false)
+        {
+            // 識別子 (identifier)がBodyの箇所を取得
+            // int myValue = 10;で言うmyValueを指す。
+            var objectCreation = assignmentExpressionSyntaxes
+                .FirstOrDefault(a => a.Left is IdentifierNameSyntax id &&
+                                     id.Identifier.Text == targetIdentifier);
+            
+            // オブジェクト生成式の構文ノードの型へ変換。
+            // Bodyオブジェクトのイニシャライザ式を配列のように扱うようにするため。
+            bodyCreation =  (ObjectCreationExpressionSyntax)objectCreation.Right;
+        }
+        else
+        {
+            bodyCreation = rootNode
+                .DescendantNodes()
+                .OfType<ObjectCreationExpressionSyntax>()
+                .FirstOrDefault(x => x.Type.ToString() == targetIdentifier);
+        }
 
         if (bodyCreation.Initializer is null) return null;
 
@@ -118,9 +127,9 @@ public class ObjectExpressionParser
                             e is LiteralExpressionSyntax))
                     {
                         var list = new List<object>();
-                        foreach (var item in objCreation.Initializer.Expressions)
+                        foreach (var expression in objCreation.Initializer.Expressions)
                         {
-                            var returnResult = ParseExpressionValue(item);
+                            var returnResult = ParseExpressionValue(expression);
                             list.Add(returnResult);
                         }
                         
@@ -183,14 +192,37 @@ public class ObjectExpressionParser
             
             // new ()の形
             case ImplicitObjectCreationExpressionSyntax implicitObjectCreation:
-                var implicitObjectList = new List<object?>();
-                foreach (var argumentSyntax in implicitObjectCreation.ArgumentList.Arguments)
+
+                if (implicitObjectCreation.Initializer is null)
                 {
-                    var value = ParseExpressionValue(argumentSyntax.Expression);
-                    implicitObjectList.Add(value);
+                    var implicitObjectList = new List<object?>();
+
+                    foreach (var argumentSyntax in implicitObjectCreation.ArgumentList.Arguments)
+                    {
+                        var value = ParseExpressionValue(argumentSyntax.Expression);
+                        implicitObjectList.Add(value);
+                    }
+
+                    return implicitObjectList;
+                }
+                else
+                {
+                    var dictionary = new Dictionary<object, object>() { };
+
+                    foreach (var expression in implicitObjectCreation.Initializer.Expressions)
+                    {
+                        {
+                            var vExpression = (AssignmentExpressionSyntax)expression;
+                            var key = vExpression.Left.ToString();
+                            var value = ParseExpressionValue(vExpression.Right);
+
+                            dictionary[key] = value;
+                        }
+                    }
+                    
+                    return dictionary;
                 }
 
-                return implicitObjectList;
 
             // 代入式（= や += などの代入・複合代入演算子）が登場する箇所に対応
             // x = 10, y += 3;

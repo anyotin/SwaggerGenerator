@@ -11,29 +11,28 @@ public class CreateSwaggerFile
     /// <summary>
     ///     共通のエンドポイント箇所
     /// </summary>
-    public const string CommonUrl = "http://localhost:5000";
+    private const string CommonUrl = "http://localhost:5000";
     
-    private string? SwaggerFileName { get; set; }
-    
-    private string swaggerFilePath = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory).Parent.Parent.Parent.FullName + "/../Share/Ta/SwaggerYamls/";
+    private string SwaggerFilePath { get; } = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory).Parent.Parent.Parent.FullName + "/../Share/Ta/SwaggerYamls/";
 
-    private string controllerTestPath = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory).Parent.Parent.Parent.FullName + "/../Api.Tests/Controllers/";
+    private string ControllerTestPath { get; } = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory).Parent.Parent.Parent.FullName + "/../Api.Tests/Controllers/";
 
     // jmxファイル出力
     // 出力先は/bin
-    private const string SaveFileName = "sample.jmx";
+    private static string SaveFileName { get; set; } = "sample.jmx";
     
-    private string saveSourcePath = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory) + SaveFileName;
+    private string SaveSourcePath { get; } = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory) + SaveFileName;
 
-    private string saveTargetPath =
+    private string SaveTargetPath { get; } =
         Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "/Public/jmeter/sample.jmx";
 
-
-
-
-    public CreateSwaggerFile()
+    public CreateSwaggerFile(string swaggerFilePath, string controllerTestPath, string saveFileName, string saveSourcePath, string saveTargetPath)
     {
-        
+        SwaggerFilePath = swaggerFilePath;
+        ControllerTestPath = controllerTestPath;
+        SaveFileName = saveFileName;
+        SaveSourcePath = saveSourcePath;
+        SaveTargetPath = saveTargetPath;
     }
     
     public class JmeterRequestInfo
@@ -74,7 +73,7 @@ public class CreateSwaggerFile
     public void Execute()
     {
         // yamlファイル取得
-        var swaggerFile = Directory.GetFiles(swaggerFilePath, "swagger_*.yaml");
+        var swaggerFile = Directory.GetFiles(SwaggerFilePath, "swagger_*.yaml");
 
         // 最新のyamlファイル取得
         var latestSwaggerFile = GetLatestFile(swaggerFile);
@@ -124,7 +123,7 @@ public class CreateSwaggerFile
         var homeDir = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         
         // 保存したファイルをJmeter実行場所へ移動
-        File.Move(saveSourcePath, saveTargetPath, true);
+        File.Move(SaveSourcePath, SaveTargetPath, true);
     }
     
      /// <summary>
@@ -303,11 +302,11 @@ public class CreateSwaggerFile
 
         foreach (var request in requestList)
         {
-            var path = controllerTestPath + request.Value.TagName + "/" + request.Value.TestClassName;
+            var path = ControllerTestPath + request.Value.TagName + "/" + request.Value.TestClassName;
 
             try
             {
-                request.Value.RequsetBodyString = objectExpressionParser.Execute(path);
+                request.Value.RequsetBodyString = objectExpressionParser.Execute(path, "Body");
             }
             catch (Exception e)
             {

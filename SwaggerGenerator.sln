@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SwaggerGenerator", "SwaggerGenerator\SwaggerGenerator.csproj", "{8B2D7898-D3F4-47EB-A148-92CF7FC6CBCA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SwaggerGenerator.Test", "SwaggerGenerator.Test\SwaggerGenerator.Test.csproj", "{64A5DC4B-E617-4936-A80B-5DC44A88D068}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +14,9 @@ Global
 		{8B2D7898-D3F4-47EB-A148-92CF7FC6CBCA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8B2D7898-D3F4-47EB-A148-92CF7FC6CBCA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8B2D7898-D3F4-47EB-A148-92CF7FC6CBCA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{64A5DC4B-E617-4936-A80B-5DC44A88D068}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{64A5DC4B-E617-4936-A80B-5DC44A88D068}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{64A5DC4B-E617-4936-A80B-5DC44A88D068}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{64A5DC4B-E617-4936-A80B-5DC44A88D068}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
